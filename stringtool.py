@@ -11,3 +11,14 @@ def limpar_string(text, allowed):
 
 def apenas_numeros(text):
     return limpar_string(text, '0123456789')
+
+def is_numeric(string):
+    try:
+        int(string)
+        return True
+    except ValueError:
+        return False
+
+def is_number_or_empty(string):
+    return string == "" or is_numeric(string)
+    
