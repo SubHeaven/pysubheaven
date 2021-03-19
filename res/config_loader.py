@@ -7,18 +7,25 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__f
 
 import foldertool
 
+def empty_smtp():
+    return {
+        "url": "smtplw.com.br",
+        "port": 587,
+        "acc": "",
+        "pass": "",
+        "email": "",
+        "imap": "",
+        "imap_port": "",
+        "email_pass": "",
+        "imap_folder": ""
+    }
+
 def default_config():
     def default_smtp():
         return {
-            "url": "smtplw.com.br",
-            "port": 587,
-            "acc": "",
-            "pass": "",
-            "email": "",
-            "imap": "",
-            "imap_port": "",
-            "email_pass": "",
-            "imap_folder": ""
+            "cobranca": empty_smtp(),
+            "documentos": empty_smtp(),
+            "processos": empty_smtp()
         }
     
     return {

@@ -41,6 +41,7 @@ def arg_parser(name, description):
             opt_pos = []
             base_nam = ""
             opt_nam = []
+            solo_nam = []
             for i in range(len(iacon_arg_config['positional'])):
                 p = iacon_arg_config['positional'][i]
                 if p['required']:
@@ -51,22 +52,27 @@ def arg_parser(name, description):
                 p = iacon_arg_config['named'][k]
                 if p['required']:
                     base_nam += f" {k}=\"{p['sample']}\""
+                elif p['solo']:
+                    solo_nam.append(f" {k}=\"{p['sample']}\"")
                 else:
                     opt_nam.append(f"{k}=\"{p['sample']}\"")
             for k in iacon_arg_config['boolean']:
                 p = iacon_arg_config['boolean'][k]
                 if p['required']:
                     base_nam += f"-{k}"
+                elif p['solo']:
+                    solo_nam.append(f" --{k}")
                 else:
-                    opt_nam.append(f"-{k}")
+                    opt_nam.append(f"--{k}")
             print(f"    {base_com} {base_nam}")
+            for item in solo_nam:
+                print(f"    {base_com} {item}")
             for item in opt_pos:
                 base_com += f" {item}"
                 print(f"    {base_com} {base_nam}")
             for item in opt_nam:
                 base_nam += f" {item}"
                 print(f"    {base_com} {base_nam}")
-
             
             print("")
             print("Parâmetros posicionais:")
@@ -103,7 +109,7 @@ def arg_parser(name, description):
                 global iacon_arg_config
             if '--doc' in sys.argv or '-doc' in sys.argv:
                 print(json.dumps(iacon_arg_config, indent=4))
-                sys.exit(9)
+                sys.exit(0)
             if iacon_arg_config['validated'] and not iacon_arg_config['show_help']:
                 func.__globals__['args'] = iacon_arg_config['params']['positional']
                 func.__globals__['params'] = iacon_arg_config['params']['named']
@@ -216,7 +222,7 @@ def positional_param(name, description, required=False, default="", sample="", l
         return wrapper
     return decorator_positional_param
 
-def named_param(name, description, required=False, default="", sample="", label="", options=[], special=""):
+def named_param(name, description, required=False, default="", sample="", label="", options=[], special="", solo=False):
     if sample == "":
         sample = default if default != "" else name
     global iacon_arg_config
@@ -249,7 +255,8 @@ def named_param(name, description, required=False, default="", sample="", label=
         'sample': sample,
         'label': label,
         'special': special,
-        'options': options
+        'options': options,
+        'solo': solo
     }
 
     iacon_arg_config['params']['named'][name] = default
@@ -295,7 +302,7 @@ def named_param(name, description, required=False, default="", sample="", label=
         return wrapper
     return decorator_named_param
 
-def boolean_param(name, description, required=False, label=""):
+def boolean_param(name, description, required=False, label="", solo=False):
     global iacon_arg_config
     if not 'iacon_arg_config' in globals():
         iacon_arg_config = {
@@ -324,7 +331,8 @@ def boolean_param(name, description, required=False, label=""):
         'required': False,
         'default': False,
         'sample': name,
-        'label': label
+        'label': label,
+        'solo': solo
     }
 
     iacon_arg_config['params']['boolean'][name] = False
@@ -346,7 +354,6 @@ def boolean_param(name, description, required=False, label=""):
     return decorator_boolean_param
 
 if __name__ == "__main__":
-    print(".".join(os.path.basename(__file__).split(".")[0:-1]))
     @arg_parser(".".join(os.path.basename(__file__).split(".")[0:-1]), 'Aqui eu escrevo a descrição da função')
     @positional_param('nome', 'Nome de quem será cumprimentado.', required=True)
     @positional_param('idade', 'Idade da pessoa que será cumprimentada.')

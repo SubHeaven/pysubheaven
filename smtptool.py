@@ -30,56 +30,60 @@ def list_mailboxes():
         for box in mailboxes:
             print(box)
 
-def send_email(html, subject, email, anexos=[]):
-    smtp = res.config_loader.config()['smtp']
+def send_email(nome, html, subject, email, anexos=[]):
+    config = res.config_loader.config()['smtp']
+    if nome in config:
+        smtp = config[nome]
 
-    user = smtp['acc']
-    password = smtp['pass']
-    sender = smtp['email']
-    recipients = email
+        user = smtp['acc']
+        password = smtp['pass']
+        sender = smtp['email']
+        recipients = email
 
-    msg = MIMEMultipart('mixed')
-    msg['Subject'] = subject
-    msg['From'] = sender
-    msg['To'] = recipients
-    msg.attach(MIMEText(html, "html", _charset='utf-8'))
+        msg = MIMEMultipart('mixed')
+        msg['Subject'] = subject
+        msg['From'] = sender
+        msg['To'] = recipients
+        msg.attach(MIMEText(html, "html", _charset='utf-8'))
 
-    for anexo in anexos:
-        if os.path.isfile(anexo):
-            with codecs.open(anexo, "r", "latin1") as file:                        
-                part = MIMEBase('application', "octet-stream")
-                part.set_payload((file).read())
-                encoders.encode_base64(part)
-                filename = os.path.basename(anexo).replace(" ", "_")
-                part.add_header('Content-Disposition', "attachment; filename=%s" % filename)
-                part.add_header('Content-ID', f"<{str(i)}>")
-                part.add_header('X-Attachment-Id', f"{str(i)}")
-                msg.attach(part)
+        for anexo in anexos:
+            if os.path.isfile(anexo):
+                with codecs.open(anexo, "r", "latin1") as file:                        
+                    part = MIMEBase('application', "octet-stream")
+                    part.set_payload((file).read())
+                    encoders.encode_base64(part)
+                    filename = os.path.basename(anexo).replace(" ", "_")
+                    part.add_header('Content-Disposition', "attachment; filename=%s" % filename)
+                    part.add_header('Content-ID', f"<{str(i)}>")
+                    part.add_header('X-Attachment-Id', f"{str(i)}")
+                    msg.attach(part)
 
-    s = smtplib.SMTP(smtp['url'], smtp['port'])
-    s.set_debuglevel(1)
-    s.login(user, password)
-    s.sendmail(sender, recipients, msg.as_string())
-    s.quit()
+        s = smtplib.SMTP(smtp['url'], smtp['port'])
+        # s.set_debuglevel(1)
+        s.login(user, password)
+        s.sendmail(sender, recipients, msg.as_string())
+        s.quit()
 
-    if smtp['imap'] != "" and smtp['email_pass'] != "":
-        imap = imaplib.IMAP4_SSL(smtp['imap'], int(smtp['imap_port']))
-        try:
-            rv, data = imap.login(smtp['email'], smtp['email_pass'])
-        except imaplib.IMAP4.error:
-            print ("LOGIN FAILED!!! ")
-            sys.exit(1)
+        if smtp['imap'] != "" and smtp['email_pass'] != "":
+            imap = imaplib.IMAP4_SSL(smtp['imap'], int(smtp['imap_port']))
+            try:
+                rv, data = imap.login(smtp['email'], smtp['email_pass'])
+            except imaplib.IMAP4.error:
+                print ("LOGIN FAILED!!! ")
+                sys.exit(1)
 
-        print(imap.append(smtp['imap_folder'], None, imaplib.Time2Internaldate(time.time()), msg.as_string().encode('utf8')))
-        imap.logout()
+            print(imap.append(smtp['imap_folder'], None, imaplib.Time2Internaldate(time.time()), msg.as_string().encode('utf8')))
+            imap.logout()
 
-        # imap = imaplib.IMAP4_SSL("imap.somacontabilidades.com.br", 993)
-        # try:
-        #     rv, data = imap.login("notificacaoiacon@somacontabilidades.com.br", "soma@202010")
-        # except imaplib.IMAP4.error:
-        #     print ("LOGIN FAILED!!! ")
-        #     sys.exit(1)
+            # imap = imaplib.IMAP4_SSL("imap.somacontabilidades.com.br", 993)
+            # try:
+            #     rv, data = imap.login("notificacaoiacon@somacontabilidades.com.br", "soma@202010")
+            # except imaplib.IMAP4.error:
+            #     print ("LOGIN FAILED!!! ")
+            #     sys.exit(1)
 
-        # print(imap.append('"Mensagens enviadas"', None, imaplib.Time2Internaldate(time.time()), msg.as_string().encode('utf8')))
-        # imap.logout()
+            # print(imap.append('"Mensagens enviadas"', None, imaplib.Time2Internaldate(time.time()), msg.as_string().encode('utf8')))
+            # imap.logout()
+    else:
+        print(f"Não existe configuração de SMTP com esse nome \"{nome}\"")
     
