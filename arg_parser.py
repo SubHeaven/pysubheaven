@@ -173,7 +173,7 @@ def positional_param(name, description, required=False, default="", sample="", l
     arg_found = False
     if len(sys.argv) > 0:
         for i in range(len(sys.argv)):
-            if not '=' in sys.argv[i] and not "-" == sys.argv[i][0]:
+            if not "-" == sys.argv[i][0]:
                 pi = len(iacon_arg_config['positional']) - 1
                 if len(iacon_arg_config['positional'][pi]['options']) > 0 and not sys.argv[i] in iacon_arg_config['positional'][pi]['options']:
                     iacon_arg_config['validated'] = False
@@ -198,6 +198,8 @@ def positional_param(name, description, required=False, default="", sample="", l
 
     if not arg_found:
         if required and not special in ['filepicker', 'folderpicker', 'filesave']:
+            print(f"Parâmetros posicionais são obrigatórios e não foi encontrado valor para o parâmetro {name}")
+            print("")
             iacon_arg_config['validated'] = False
         else:
             iacon_arg_config['params']['positional'].append(default)
